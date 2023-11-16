@@ -11,9 +11,10 @@
 #include "pbs_linear_probing.cpp"
 #include "linear_probing.hh"
 #include "test_linear_probing.hh"
+#include "pbs_epsilon_8.hh"
 
 typedef std::mt19937 MTRng;  
-const u32 seed_val = 1;    
+const u32 seed_val = 996241586;    
 MTRng rng;
 
 struct TestData {
@@ -31,6 +32,7 @@ struct PbsTestData {
 };
 
 struct TestResult {
+    std::string structure_name;
     u64 sum;
     u64 insertion_time;
     u64 query_time;
@@ -102,7 +104,6 @@ PbsTestData<pbs_structure> generate_pbs_test_data(TestData& data){
 }
 
 
-
 TestResult test_set_data_structure(TestData& data){
     
     std::set<u64> set;
@@ -151,11 +152,12 @@ TestResult test_set_data_structure(TestData& data){
     std::cout << "Sum: " << sum << "\n";
     std::cout << "--------------------\n";
 
-    return {.sum = sum, .insertion_time = insertion_time, .query_time = query_time};
+    return {.structure_name = "std::set", .sum = sum, .insertion_time = insertion_time, .query_time = query_time};
 }
 
 template <typename pbs_structure>
-TestResult test_pbs_data_structure(PbsTestData<pbs_structure> data){
+TestResult test_pbs_data_structure(TestData& test_data){
+    PbsTestData<pbs_structure> data = generate_pbs_test_data<pbs_structure>(test_data);
     using Data = PbsTestData<pbs_structure>;
     pbs_structure pbs = pbs_structure();
     u64 insertion_time = 0;
@@ -204,7 +206,20 @@ TestResult test_pbs_data_structure(PbsTestData<pbs_structure> data){
 
     //pbs.print_statistics();
 
-    return {.sum = sum, .insertion_time = insertion_time, .query_time = query_time};
+    return {.structure_name = pbs.name(), .sum = sum, .insertion_time = insertion_time, .query_time = query_time};
+}
+
+
+void compare_results(TestResult baseline, TestResult testing){
+    std::cout << "-----------------------\n";
+    std::cout << "Comparing " << testing.structure_name << " to baseline " << baseline.structure_name << "\n";
+    if (baseline.sum == testing.sum) std::cout << "All good!\n";
+    else std::cout << "BUG! They differ\n";
+
+    std::cout << "Time PBS / Set\nInsertion: " 
+              << (double)testing.insertion_time / (double)baseline.insertion_time 
+              << "\nQuery: " << (double)testing.query_time / (double)baseline.query_time << "\n";
+    std::cout << "-----------------------\n";
 }
 
 
@@ -212,30 +227,34 @@ int main(void){
 
     srand(seed_val);
 
-    //u64 lim = 0xFFFFFFFFFFFFFFFE;
-    u64 lim = 10000000;
-    u64 n   = 1000;
-    TestData data = generate_test_data(lim,n,n,1);
+    u64 lim = 0xFFFFFFFFFFFFFFFE;
+    u64 n   = 1000000;
+    u64 n_rounds = 10;
+    TestData data = generate_test_data(lim,n,n,n_rounds);
 
-    auto res_set = test_set_data_structure(data);
+    //auto res_set = test_set_data_structure(data);
     
-    using PBS = TestLinearProbingPBS<8>;
+    //using PBS = TestLinearProbingPBS<8>;
     //using PBS = MapAndVecPBS<32>;
     //using PBS = PBSLinearProbing<8>;
-    PbsTestData<PBS> pbs_data = generate_pbs_test_data<PBS>(data);
-    auto res_pbs = test_pbs_data_structure<PBS>(pbs_data);
+    //auto res_pbs_espilon_8 = 
+
+    auto baseline = test_pbs_data_structure<MapAndVecPBS<32>>(data);
+
+    std::vector<TestResult> results = {
+        test_pbs_data_structure<PBSEpsilon8>(data)
+    };
+
+    for (auto res : results){
+        compare_results(baseline, res);
+    }
 
 
 
-    if (res_set.sum == res_pbs.sum) std::cout << "All good!\n";
-    else std::cout << "BUG! They differ\n";
-
-    std::cout << "Time PBS / Set\nInsertion: " 
-              << (double)res_pbs.insertion_time / (double)res_set.insertion_time 
-              << "\nQuery: " << (double)res_pbs.query_time / (double)res_set.query_time << "\n";
 
 
 
+ 
     return 0;
 }
 

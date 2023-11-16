@@ -39,6 +39,10 @@ struct MapAndVecPBS {
         return pbHash(id) % epsilon == 0;
     }
 
+    std::string name(){
+        return "Map-And-Vec PBS";
+    }
+
     inline bool tryInsertInPage(u64 x, u64 id){
         if (!is_id_page_bearer(id)) return false;
         auto pt = map.find(id);
