@@ -89,25 +89,4 @@ struct PBSEpsilon8 {
         auto ret =  base_element + index_of_largest_element;
         return ret;
     }
-    
-
-
-    /*
-
-    inline u64 tryPredecessorInPage(u64 x, u64 id){
-        u64 best = 0;
-        u64 current = hash(id) & mod_capacity_bitmask;
-        u64 tmp;
-        while (true){
-            tmp = *(table + current);
-            if (tmp == EMPTY_CELL) break;
-            if (tmp <= x && tmp > best) best = tmp;
-            current = (current + 1) & mod_capacity_bitmask;
-        }
-       return best;
-    }
-    
-    */
-
-
 };

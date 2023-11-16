@@ -12,6 +12,7 @@
 #include "linear_probing.hh"
 #include "test_linear_probing.hh"
 #include "pbs_epsilon_8.hh"
+#include "pbs_bit_tricks.hh"
 
 typedef std::mt19937 MTRng;  
 const u32 seed_val = 996241586;    
@@ -157,9 +158,10 @@ TestResult test_set_data_structure(TestData& data){
 
 template <typename pbs_structure>
 TestResult test_pbs_data_structure(TestData& test_data){
+    pbs_structure pbs = pbs_structure();
+    std::cout << "Testing " << pbs.name() << "\n";
     PbsTestData<pbs_structure> data = generate_pbs_test_data<pbs_structure>(test_data);
     using Data = PbsTestData<pbs_structure>;
-    pbs_structure pbs = pbs_structure();
     u64 insertion_time = 0;
     u64 query_time = 0;
     u64 sum = 0;
@@ -198,7 +200,6 @@ TestResult test_pbs_data_structure(TestData& test_data){
         }
     }
 
-    std::cout << "Testing PBS structure\n";
     std::cout << "Insertion time: " << insertion_time << "us\n";
     std::cout << "Query time: " << query_time << "us\n";
     std::cout << "Sum: " << sum << "\n";
@@ -213,8 +214,13 @@ TestResult test_pbs_data_structure(TestData& test_data){
 void compare_results(TestResult baseline, TestResult testing){
     std::cout << "-----------------------\n";
     std::cout << "Comparing " << testing.structure_name << " to baseline " << baseline.structure_name << "\n";
-    if (baseline.sum == testing.sum) std::cout << "All good!\n";
-    else std::cout << "BUG! They differ\n";
+
+
+    auto all_ok = "\033[32;1mOK: the sum checks out\033[0m\n";
+    auto error  = "\033[31;1mERROR: they differ!\033[0m\n";
+
+    if (baseline.sum == testing.sum) std::cout << all_ok;
+    else std::cout << error;
 
     std::cout << "Time PBS / Set\nInsertion: " 
               << (double)testing.insertion_time / (double)baseline.insertion_time 
@@ -227,22 +233,27 @@ int main(void){
 
     srand(seed_val);
 
-    u64 lim = 0xFFFFFFFFFFFFFFFE;
-    u64 n   = 1000000;
-    u64 n_rounds = 10;
+    //u64 lim = 0xFFFFFFFFFFFFFFFE;
+    u64 lim = 1000000;
+    u64 n   = 100000;
+    u64 n_rounds = 3;
     TestData data = generate_test_data(lim,n,n,n_rounds);
 
     //auto res_set = test_set_data_structure(data);
     
     //using PBS = TestLinearProbingPBS<8>;
     //using PBS = MapAndVecPBS<32>;
-    //using PBS = PBSLinearProbing<8>;
+    //using PBS = ;
     //auto res_pbs_espilon_8 = 
 
-    auto baseline = test_pbs_data_structure<MapAndVecPBS<32>>(data);
+    //auto baseline = test_pbs_data_structure<MapAndVecPBS<32>>(data);
+    auto baseline = test_set_data_structure(data);
 
     std::vector<TestResult> results = {
-        test_pbs_data_structure<PBSEpsilon8>(data)
+        test_pbs_data_structure<PBSBitTricks<64>>(data),
+        //test_pbs_data_structure<PBSEpsilon8>(data),
+        //test_pbs_data_structure<PBSLinearProbing<8>>(data),
+
     };
 
     for (auto res : results){

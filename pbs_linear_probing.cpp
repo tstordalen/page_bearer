@@ -65,6 +65,10 @@ struct PBSLinearProbing {
         exit(1);
     }
 
+    std::string name(){
+        return "PBS Linear Probing";
+    }
+
     void resize_table(){
         //std::cout << "c\n";
         // TODO: Remember to implement shrinking if necessary
