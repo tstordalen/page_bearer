@@ -34,6 +34,7 @@ struct TestResult {
     u64 query_time;
 };
 
+    //#define DEBUGGING
 
 TestData generate_test_data(u64 universe_size, u64 n_insertions_per_block, u64 n_queries_per_block, u64 n_blocks){
     TestData data;
@@ -205,13 +206,16 @@ TestResult test_pbs_data_structure(PbsTestData<pbs_structure> data){
 
 int main(void){
 
-    TestData data = generate_test_data(0xFFFFFFFFFFFFFFFF,10000,10000,100);
+    u64 lim = 0xFFFFFFFFFFFFFFFE;
+    TestData data = generate_test_data(lim,1000000,1000000,20);
     auto res_set = test_set_data_structure(data);
     
   
-    using PBS = MapAndVecPBS<32>;
+    //using PBS = MapAndVecPBS<32>;
+    using PBS = PBSLinearProbing<64>;
     PbsTestData<PBS> pbs_data = generate_pbs_test_data<PBS>(data);
     auto res_pbs = test_pbs_data_structure<PBS>(pbs_data);
+
 
 
     if (res_set.sum == res_pbs.sum) std::cout << "All good!\n";
@@ -220,7 +224,6 @@ int main(void){
     std::cout << "Time PBS / Set\nInsertion: " 
               << (double)res_pbs.insertion_time / (double)res_set.insertion_time 
               << "\nQuery: " << (double)res_pbs.query_time / (double)res_set.query_time << "\n";
-
 
 
 
