@@ -9,9 +9,11 @@
 
 #include "pbs_map_and_vec.cpp"
 #include "pbs_linear_probing.cpp"
+#include "linear_probing.hh"
+#include "test_linear_probing.hh"
 
 typedef std::mt19937 MTRng;  
-const u32 seed_val = 53315113;    
+const u32 seed_val = 1;    
 MTRng rng;
 
 struct TestData {
@@ -155,7 +157,7 @@ TestResult test_set_data_structure(TestData& data){
 template <typename pbs_structure>
 TestResult test_pbs_data_structure(PbsTestData<pbs_structure> data){
     using Data = PbsTestData<pbs_structure>;
-    auto pbs = pbs_structure();
+    pbs_structure pbs = pbs_structure();
     u64 insertion_time = 0;
     u64 query_time = 0;
     u64 sum = 0;
@@ -200,19 +202,26 @@ TestResult test_pbs_data_structure(PbsTestData<pbs_structure> data){
     std::cout << "Sum: " << sum << "\n";
     std::cout << "--------------------\n";
 
+    //pbs.print_statistics();
+
     return {.sum = sum, .insertion_time = insertion_time, .query_time = query_time};
 }
 
 
 int main(void){
 
-    u64 lim = 0xFFFFFFFFFFFFFFFE;
-    TestData data = generate_test_data(lim,1000000,1000000,20   );
+    srand(seed_val);
+
+    //u64 lim = 0xFFFFFFFFFFFFFFFE;
+    u64 lim = 10000000;
+    u64 n   = 1000;
+    TestData data = generate_test_data(lim,n,n,1);
+
     auto res_set = test_set_data_structure(data);
     
-  
+    using PBS = TestLinearProbingPBS<8>;
     //using PBS = MapAndVecPBS<32>;
-    using PBS = PBSLinearProbing<64>;
+    //using PBS = PBSLinearProbing<8>;
     PbsTestData<PBS> pbs_data = generate_pbs_test_data<PBS>(data);
     auto res_pbs = test_pbs_data_structure<PBS>(pbs_data);
 

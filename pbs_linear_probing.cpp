@@ -101,22 +101,15 @@ struct PBSLinearProbing {
         const u64 n = capacity;
         bool is_power_of_two = (n != 0) && ((n & (n-1)) == 0);
         if (!is_power_of_two){
-            std::cout << "ERROR: capacity is not one smaller than a power of two. Exiting.\n";
-            std::cout << "Capacity is " << capacity << "\n";
-            std::cout << "Capacity + 1 != 0 " << ((capacity + 1) != 0) << "\n";
-            std::cout << "capacity + 1: " << std::hex << (capacity + 1 ) << "\n";
-            std::cout << "Capacity: " << capacity << "\n";
-            std::cout << "Binary and: " << ((capacity + 1) & capacity) << "\n";
-            std::cout << (((capacity + 1) & capacity) == 0) << "\n";
+            std::cout << "ERROR: capacity (" << capacity << ") is not a power of two Exiting.\n";
             exit(1);
         }
     }
 
     inline static u64 hash(u64 x) {
-        //x &= 0xFFFFFFFE; // Odd numbers are never page bearers 
         const u64 a = 2187650952262969439;
-        //const u64 b = 2349073786287317910;
-        return (a * x); // + b;
+        const u64 b = 2349073786287317910;
+        return (a * x) + b;
     }
 
     inline static u64 get_id(u64 x){
@@ -170,6 +163,42 @@ struct PBSLinearProbing {
     bool tryDeleteInPage(u64 x, u64 id){
         std::cout << "Delete not implemented\n";
         exit(1);
+    }
+
+
+    u64 length_of_bucket_starting_at(u64 i){
+        u64 prev = i == 0? capacity-1 : i-1;
+        if (table[prev] != EMPTY_CELL || table[i] == EMPTY_CELL) return 0;
+        u64 len = 0;
+        while (true){
+            if (table[i] == EMPTY_CELL) break;
+            len++;
+            i = (i+1) & mod_capacity_bitmask;
+        }
+        return len;
+    }
+
+    void print_statistics(){
+        const u64 max_bucket_len = 1000;
+        u64 bucket_lengths[max_bucket_len];
+        memset(bucket_lengths, 0, sizeof(bucket_lengths));
+        u64 number_of_long_buckets = 0;
+        for(size_t i = 0; i < capacity; i++){
+            auto len = length_of_bucket_starting_at(i);
+            if (len >= max_bucket_len) number_of_long_buckets++;
+            else bucket_lengths[len]++;
+        }
+        bucket_lengths[0] = 0;
+        u64 sum_buckets = 0;
+        for(int i = 0; i < max_bucket_len; i++) sum_buckets += bucket_lengths[i];
+        std::cout << "Number of empty positions: " << capacity - n_elements << "\n";
+        std::cout << "Number of huge buckets: " << number_of_long_buckets << "\n";
+        std::cout << "Number of buckets in total: " << (number_of_long_buckets + sum_buckets) << "\n";
+        std::cout << "Average bucket length: " << (double)n_elements/(double)(number_of_long_buckets + sum_buckets) << "\n";
+
+        std::cout << "Buckets:\n   ";
+        for(int i = 0; i < 256; i++) std::cout << bucket_lengths[i] << " ";
+        std::cout << "\n";
     }
 
 };
