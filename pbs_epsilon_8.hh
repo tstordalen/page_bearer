@@ -11,6 +11,7 @@ struct PBSEpsilon8 {
 
     static const u64 epsilon = 8;
     static const u64 bits_per_word = 64;
+    u64 zero = 0;
 
     LinearProbing<u64> table;
 
@@ -41,15 +42,8 @@ struct PBSEpsilon8 {
     inline bool tryInsertInPage(u64 x, u64 id){
         u64 x_id = get_id(x);       
         // 0: initialize with empty bitvector if the page does not exist
-        auto result = table.get_or_insert(x_id, 0);
-        //std::cout << "------------------\n";
-        //std::cout << std::dec << "Inserting " << x << " at id " << x_id << "\n";
-        //std::cout << "The index in page is " << get_index_in_page(x) << "\n";
-        //std::cout << "initially, elements is " << std::hex << result->value << "\n";
-        //std::cout << "The thing we or in is " << ((u64)(1) << get_index_in_page(x)) << "\n";
+        auto result = table.get_or_insert(x_id, zero);
         result->value |= ((u64)(1) << get_index_in_page(x));
-        //std::cout << "after, it is " << result->value << "\n";
-        //std::cout << std::dec << "---------------\n";
         return true;
     }
 

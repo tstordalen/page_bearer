@@ -233,10 +233,10 @@ int main(void){
 
     srand(seed_val);
 
-    //u64 lim = 0xFFFFFFFFFFFFFFFE;
-    u64 lim = 1000000;
-    u64 n   = 100000;
-    u64 n_rounds = 3;
+    u64 lim = 0xFFFFFFFFFFFFFFF0;
+    //u64 lim = 1000000;
+    u64 n   = 1000000;
+    u64 n_rounds = 15;
     TestData data = generate_test_data(lim,n,n,n_rounds);
 
     //auto res_set = test_set_data_structure(data);
@@ -250,7 +250,8 @@ int main(void){
     auto baseline = test_set_data_structure(data);
 
     std::vector<TestResult> results = {
-        test_pbs_data_structure<PBSBitTricks<64>>(data),
+        //test_pbs_data_structure<MapAndVecPBS<8>>(data),
+        test_pbs_data_structure<PBSBitTricks<16>>(data),
         //test_pbs_data_structure<PBSEpsilon8>(data),
         //test_pbs_data_structure<PBSLinearProbing<8>>(data),
 
@@ -259,12 +260,6 @@ int main(void){
     for (auto res : results){
         compare_results(baseline, res);
     }
-
-
-
-
-
-
  
     return 0;
 }

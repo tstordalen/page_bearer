@@ -110,7 +110,7 @@ struct LinearProbing {
     }
 
     // Gets the entry, or inserts a new one if it's not in the table 
-    inline Entry* get_or_insert(u64 key, Data init_if_not_found){
+    inline Entry* get_or_insert(u64 key, Data& init_if_not_found){
         if (n_elements >= max_n_supported) resize_table();
         
         u64 current = hash(key) & mod_capacity_bitmask;
