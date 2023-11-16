@@ -207,7 +207,7 @@ TestResult test_pbs_data_structure(PbsTestData<pbs_structure> data){
 int main(void){
 
     u64 lim = 0xFFFFFFFFFFFFFFFE;
-    TestData data = generate_test_data(lim,1000000,1000000,20);
+    TestData data = generate_test_data(lim,1000000,1000000,20   );
     auto res_set = test_set_data_structure(data);
     
   
