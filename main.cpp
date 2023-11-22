@@ -13,6 +13,7 @@
 #include "test_linear_probing.hh"
 #include "pbs_epsilon_8.hh"
 #include "pbs_bit_tricks.hh"
+#include "pbs_with_page_bearer_hashing.hh"
 
 typedef std::mt19937 MTRng;  
 const u32 seed_val = 996241586;    
@@ -171,7 +172,7 @@ TestResult test_pbs_data_structure(TestData& test_data){
         if (data.ops[current] == Data::Op::Insert){
             const u64 start = nowMicros();
             while (current < N && data.ops[current] == Data::Op::Insert){
-                auto res = pbs.tryInsertInPage(data.xs[current], data.page_id[current]);
+                auto res = pbs.try_insert_in_page(data.xs[current], data.page_id[current]);
                 #ifdef DEBUGGING
                 std::cout << "PBS: inserting " << data.xs[current] << " at " << data.page_id[current] << " with result " << res << "\n";
                 #endif
@@ -183,7 +184,7 @@ TestResult test_pbs_data_structure(TestData& test_data){
         else if (data.ops[current] == Data::Op::Query){
             const u64 start = nowMicros();
             while (current < N && data.ops[current] == Data::Op::Query){
-                auto res = pbs.tryPredecessorInPage(data.xs[current], data.page_id[current]);
+                auto res = pbs.try_predecessor_in_page(data.xs[current], data.page_id[current]);
                 sum += res;
                 #ifdef DEBUGGING
                 std::cout << "PBS: querying " << data.xs[current] << " at " << data.page_id[current] << " with result " << res << "\n";
@@ -236,22 +237,17 @@ int main(void){
     u64 lim = 0xFFFFFFFFFFFFFFF0;
     //u64 lim = 1000000;
     u64 n   = 1000000;
-    u64 n_rounds = 15;
+    u64 n_rounds = 5;
     TestData data = generate_test_data(lim,n,n,n_rounds);
 
-    //auto res_set = test_set_data_structure(data);
-    
-    //using PBS = TestLinearProbingPBS<8>;
-    //using PBS = MapAndVecPBS<32>;
-    //using PBS = ;
-    //auto res_pbs_espilon_8 = 
-
-    //auto baseline = test_pbs_data_structure<MapAndVecPBS<32>>(data);
+    const u64 epsilon = 64;
+    //auto baseline = test_pbs_data_structure<MapAndVecPBS<epsilon>>(data);
     auto baseline = test_set_data_structure(data);
 
     std::vector<TestResult> results = {
-        //test_pbs_data_structure<MapAndVecPBS<8>>(data),
-        test_pbs_data_structure<PBSBitTricks<16>>(data),
+        test_pbs_data_structure<MapAndVecPBS<epsilon>>(data),
+        test_pbs_data_structure<PBSBitTricks<epsilon>>(data),
+        test_pbs_data_structure<PBSPageBearerHashing<epsilon>>(data),
         //test_pbs_data_structure<PBSEpsilon8>(data),
         //test_pbs_data_structure<PBSLinearProbing<8>>(data),
 

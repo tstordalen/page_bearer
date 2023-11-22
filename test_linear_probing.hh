@@ -58,7 +58,7 @@ struct TestLinearProbingPBS {
     }
 
 
-    inline bool tryInsertInPage(u64 x, u64 id){
+    inline bool try_insert_in_page(u64 x, u64 id){
         id = get_id(x);
         auto res = table.get_or_insert(id, empty_list);
         
@@ -75,7 +75,7 @@ struct TestLinearProbingPBS {
         return true;        
     }
 
-    inline u64 tryPredecessorInPage(u64 x, u64 id){
+    inline u64 try_predecessor_in_page(u64 x, u64 id){
         auto res = table.get(id);
         if (res == nullptr) return 0;
         
@@ -88,7 +88,7 @@ struct TestLinearProbingPBS {
     }
 /*
     // Assumes there is at least one free position in the table
-    inline bool tryInsertInPage(u64 x, u64 id){
+    inline bool try_insert_in_page(u64 x, u64 id){
         //std::cout << "a\n   " << x << ", " << id << "\n";
         u64 current = hash(get_id(x)) & mod_capacity_bitmask;
         bool found = false;
@@ -110,7 +110,7 @@ struct TestLinearProbingPBS {
         return true;
     }
 
-    inline u64 tryPredecessorInPage(u64 x, u64 id){
+    inline u64 try_predecessor_in_page(u64 x, u64 id){
         u64 best = 0;
         u64 current = hash(id) & mod_capacity_bitmask;
         u64 tmp;

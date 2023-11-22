@@ -92,7 +92,7 @@ struct PBSLinearProbing {
         for(size_t i = 0; i < old_capacity; i++){
             tmp = old_table[i];
             if (tmp != EMPTY_CELL){
-                tryInsertInPage(tmp, get_id(tmp));
+                try_insert_in_page(tmp, get_id(tmp));
             }
         }
         //std::cout << "e\n";
@@ -129,7 +129,7 @@ struct PBSLinearProbing {
 
 
     // Assumes there is at least one free position in the table
-    inline bool tryInsertInPage(u64 x, u64 id){
+    inline bool try_insert_in_page(u64 x, u64 id){
         //std::cout << "a\n   " << x << ", " << id << "\n";
         u64 current = hash(get_id(x)) & mod_capacity_bitmask;
         bool found = false;
@@ -151,7 +151,7 @@ struct PBSLinearProbing {
         return true;
     }
 
-    inline u64 tryPredecessorInPage(u64 x, u64 id){
+    inline u64 try_predecessor_in_page(u64 x, u64 id){
         u64 best = 0;
         u64 current = hash(id) & mod_capacity_bitmask;
         u64 tmp;

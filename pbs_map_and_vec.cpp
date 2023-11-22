@@ -11,8 +11,6 @@ struct MapAndVecPBS {
 
 
     std::unordered_map<u64, std::vector<u64>> map;
-    const char *structure_name = "PBS using std::map and std::vec";
-
     MapAndVecPBS() {
         std::vector<u64> v; 
         v.push_back(0);
@@ -43,7 +41,7 @@ struct MapAndVecPBS {
         return "Map-And-Vec PBS";
     }
 
-    inline bool tryInsertInPage(u64 x, u64 id){
+    inline bool try_insert_in_page(u64 x, u64 id){
         if (!is_id_page_bearer(id)) return false;
         auto pt = map.find(id);
         if (pt == map.end()) return false;
@@ -80,7 +78,7 @@ struct MapAndVecPBS {
         return true;
     }
 
-    inline u64 tryPredecessorInPage(u64 x, u64 id){
+    inline u64 try_predecessor_in_page(u64 x, u64 id){
         if (pbHash(id) % epsilon != 0) return 0;
         
         auto pt = map.find(id);

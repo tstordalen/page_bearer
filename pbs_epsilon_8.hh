@@ -39,7 +39,7 @@ struct PBSEpsilon8 {
         return true; 
     }
 
-    inline bool tryInsertInPage(u64 x, u64 id){
+    inline bool try_insert_in_page(u64 x, u64 id){
         u64 x_id = get_id(x);       
         // 0: initialize with empty bitvector if the page does not exist
         auto result = table.get_or_insert(x_id, zero);
@@ -47,7 +47,7 @@ struct PBSEpsilon8 {
         return true;
     }
 
-    inline u64 tryPredecessorInPage(u64 x, u64 id){
+    inline u64 try_predecessor_in_page(u64 x, u64 id){
         auto result = table.get(id);
         if (result == nullptr) return 0;
 
