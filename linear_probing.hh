@@ -45,13 +45,12 @@ struct LinearProbing {
     }
 
     ~LinearProbing(){
-        std::cout << "Destructor not implemented for LinearProbing!\n";
+        if (table != nullptr) free(table);
     }
 
-    LinearProbing(const LinearProbing& other)
-    {
-        std::cout << "Copy constructor not implemented for LinearProbing\n";
-        exit(1);
+    LinearProbing(const LinearProbing& other){   
+        assert(&other != this); 
+        operator=(other);
     }
 
     LinearProbing& operator=(const LinearProbing& other){
@@ -60,7 +59,16 @@ struct LinearProbing {
             mod_capacity_bitmask   = other.mod_capacity_bitmask;
             n_elements             = other.n_elements;
             max_n_supported        = other.max_n_supported;
-            table                  = other.table;
+
+            if (other.table != nullptr){
+                u64 size = capacity * sizeof(Entry);
+                table = (Entry*)malloc(size);
+                if (!table) {
+                    std::cout << "Allocation of table failed in operator= for LinearProbing.\n", exit(1);
+                }
+                memcpy((void*)table, (void*)other.table, size);  
+            }
+            else table = nullptr;
             return *this;
         } else return *this; 
     }
@@ -79,7 +87,7 @@ struct LinearProbing {
 
         u64 new_size               = sizeof(*table)*capacity;
         this->table                = (typeof(table))malloc(new_size);
-        memset(this->table, (unsigned char)EMPTY_CELL, new_size);
+        memset((void*)this->table, (unsigned char)EMPTY_CELL, new_size);
         verify_valid_capacity();
 
 

@@ -40,7 +40,8 @@ struct TestResult {
     u64 query_time;
 };
 
-    //#define DEBUGGING
+    //#define DEBUGGING_QUERIES
+    //#define DEBUGGING_INSERTIONS
 
 TestData generate_test_data(u64 universe_size, u64 n_insertions_per_block, u64 n_queries_per_block, u64 n_blocks){
     TestData data;
@@ -49,12 +50,12 @@ TestData generate_test_data(u64 universe_size, u64 n_insertions_per_block, u64 n
     std::vector<Op> ops;
     std::vector<u64> xs;
 
-    for (int block = 0; block < n_blocks; block++){
-        for(int ins_i = 0; ins_i < n_insertions_per_block; ins_i++){
+    for (u64 block = 0; block < n_blocks; block++){
+        for(u64 ins_i = 0; ins_i < n_insertions_per_block; ins_i++){
             ops.push_back(Op::Insert);
             xs.push_back(uniform(rng));
         }
-        for(int pred_i = 0; pred_i < n_queries_per_block; pred_i++){
+        for(u64 pred_i = 0; pred_i < n_queries_per_block; pred_i++){
             ops.push_back(Op::Query);
             xs.push_back(uniform(rng));
         }
@@ -76,10 +77,9 @@ PbsTestData<pbs_structure> generate_pbs_test_data(TestData& data){
     all_identifiers.insert(0);
 
     const u64 data_N = data.ops.size();
-    for(int64_t data_i = 0; data_i < data_N; data_i++){
+    for(u64 data_i = 0; data_i < data_N; data_i++){
         const TestData::Op data_op = data.ops[data_i];
         const u64 x    = data.xs[data_i];
-        const u64 id_x = get_id(x);
         auto pbs_op = 
             (data_op == TestData::Op::Insert) ? Data::Op::Insert : 
             (data_op == TestData::Op::Query)  ? Data::Op::Query  :
@@ -119,7 +119,7 @@ TestResult test_set_data_structure(TestData& data){
         if (data.ops[current] == TestData::Op::Insert){
             const u64 start = nowMicros();
             while (current < N && data.ops[current] == TestData::Op::Insert){
-                #ifdef DEBUGGING 
+                #ifdef DEBUGGING_INSERTIONS 
                 std::cout << "SET: inserting " << data.xs[current] << "\n"; 
                 #endif
                 set.insert(data.xs[current]);
@@ -134,7 +134,7 @@ TestResult test_set_data_structure(TestData& data){
                 auto pt = set.upper_bound(data.xs[current]);
                 pt--;
                 sum += *pt;
-                #ifdef DEBUGGING
+                #ifdef DEBUGGING_QUERIES
                 std::cout << "SET: pred of " << data.xs[current] << " is " << *pt << "\n";
                 #endif
                 current++;
@@ -172,9 +172,11 @@ TestResult test_pbs_data_structure(TestData& test_data){
         if (data.ops[current] == Data::Op::Insert){
             const u64 start = nowMicros();
             while (current < N && data.ops[current] == Data::Op::Insert){
+                #ifdef DEBUGGING_INSERTIONS
                 auto res = pbs.try_insert_in_page(data.xs[current], data.page_id[current]);
-                #ifdef DEBUGGING
                 std::cout << "PBS: inserting " << data.xs[current] << " at " << data.page_id[current] << " with result " << res << "\n";
+                #else 
+                pbs.try_insert_in_page(data.xs[current], data.page_id[current]);
                 #endif
                 current++;
             }
@@ -186,7 +188,7 @@ TestResult test_pbs_data_structure(TestData& test_data){
             while (current < N && data.ops[current] == Data::Op::Query){
                 auto res = pbs.try_predecessor_in_page(data.xs[current], data.page_id[current]);
                 sum += res;
-                #ifdef DEBUGGING
+                #ifdef DEBUGGING_QUERIES
                 std::cout << "PBS: querying " << data.xs[current] << " at " << data.page_id[current] << " with result " << res << "\n";
                 #endif
                 current++;
@@ -211,7 +213,6 @@ TestResult test_pbs_data_structure(TestData& test_data){
     return {.structure_name = pbs.name(), .sum = sum, .insertion_time = insertion_time, .query_time = query_time};
 }
 
-
 void compare_results(TestResult baseline, TestResult testing){
     std::cout << "-----------------------\n";
     std::cout << "Comparing " << testing.structure_name << " to baseline " << baseline.structure_name << "\n";
@@ -229,34 +230,38 @@ void compare_results(TestResult baseline, TestResult testing){
     std::cout << "-----------------------\n";
 }
 
-
 int main(void){
 
     srand(seed_val);
 
-    u64 lim = 0xFFFFFFFFFFFFFFF0;
-    //u64 lim = 1000000;
+    //u64 universe_size = 0xFFFFFFFFFFFFFFF0;
+    
+    // the setting universe_size = 3000000, n = 1000000, n_rounds = 2, seed_val = 996241586,
+    // and TestData data = generate_test_data(universe_size,n,n/1000,n_rounds);
+    // leads to a bug with test_pbs_data_structure<PBSPageBearerHashing<32>>(data),
+    // Only care about this if you're actually going to use the structure.
+    // I'm fairly certain the bug is in PBSPageBearerHashing and not in LinearProbing. 
+    
+    u64 universe_size = 3000000;
     u64 n   = 1000000;
-    u64 n_rounds = 5;
-    TestData data = generate_test_data(lim,n,n,n_rounds);
+    u64 n_rounds = 2;
+    TestData data = generate_test_data(universe_size,n,n/1000,n_rounds);
 
-    const u64 epsilon = 64;
+    const u64 epsilon = 32;
     //auto baseline = test_pbs_data_structure<MapAndVecPBS<epsilon>>(data);
     auto baseline = test_set_data_structure(data);
 
     std::vector<TestResult> results = {
-        test_pbs_data_structure<MapAndVecPBS<epsilon>>(data),
-        test_pbs_data_structure<PBSBitTricks<epsilon>>(data),
         test_pbs_data_structure<PBSPageBearerHashing<epsilon>>(data),
+        //test_pbs_data_structure<PBSBitTricks<epsilon>>(data),
+        //test_pbs_data_structure<MapAndVecPBS<epsilon>>(data),
         //test_pbs_data_structure<PBSEpsilon8>(data),
         //test_pbs_data_structure<PBSLinearProbing<8>>(data),
-
     };
 
     for (auto res : results){
         compare_results(baseline, res);
     }
- 
     return 0;
 }
 

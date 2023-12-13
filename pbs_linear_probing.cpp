@@ -7,6 +7,13 @@
 #include <cstdlib>
 #include <cstring>
 
+
+// PBS using linear probing. Does not compute hash to determine if page bearer
+// but stores every element with id x / epsilon^2. Resolves collisions as normal
+// in linear probing.
+
+// Can run really slow because of long runs.
+
 template <uint64_t epsilon>
 struct PBSLinearProbing {
 

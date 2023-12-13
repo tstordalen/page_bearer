@@ -7,6 +7,8 @@
 
 
 
+// Linear probing hash table where each entry is (key, ptr_to_vector)
+// determines if an element is a page bearer using a hash function
 template <u64 epsilon>
 struct PBSPageBearerHashing {
 
@@ -114,5 +116,47 @@ struct PBSPageBearerHashing {
             if (e <= x && e > best) best = e;
         }
         return best;
+    }
+
+
+    void print_statistics(){
+        using LPTable = typeof(table);
+        u64 n_pages = table.n_elements;
+        
+        const u64 MAX_BUCKET_SIZE = 1000;
+        u64 bucket_size[MAX_BUCKET_SIZE];
+        memset(bucket_size, 0, sizeof(bucket_size));
+
+        u64 total_elements = 0;
+        u64 max_seen = 0;
+        for(u64 i = 0; i < table.capacity; i++){
+            if (table.table[i].key != LPTable::EMPTY_CELL){
+                const u64 size = table.table[i].value->size();
+                total_elements += size;
+                if (size > max_seen) max_seen = size;
+                if (size < MAX_BUCKET_SIZE) bucket_size[size]++;
+            }
+        }
+        
+
+        const double avg_elements_per_page = (double)total_elements / n_pages;
+        std::cout << "There are " << total_elements << " elements\n" 
+                  << n_pages << " pages\n" 
+                  << avg_elements_per_page << " elements per page on average, and \n" 
+                  << max_seen << " is the size of the largest bucket\n";
+
+
+        u64 bucket_size_running[MAX_BUCKET_SIZE];
+        bucket_size_running[0] = bucket_size[0];
+        for(u64 i = 1; i < MAX_BUCKET_SIZE; i++) bucket_size_running[i] = bucket_size_running[i-1] + bucket_size[i];
+        
+        
+        double density[MAX_BUCKET_SIZE];
+        for (u64 i = 1; i < MAX_BUCKET_SIZE; i++) density[i] = (double)bucket_size_running[i] / n_pages;
+        
+        std::cout << "The density is \n";
+        for(u64 i = 0; i < 3*epsilon; i++){
+            std::cout << i << ": " << density[i] << "\n"; 
+        }
     }
 };

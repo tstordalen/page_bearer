@@ -5,6 +5,8 @@
 #include "linear_probing.hh"
 
 
+// The same as pbs_bit_tricks but with epilson=8 fixed. Sorry.
+
 // With epsilon = 8, we have epsilon^2 = 64, and we can
 // store a single 64-bit bitvector word for each 'page'
 struct PBSEpsilon8 {
@@ -34,12 +36,12 @@ struct PBSEpsilon8 {
         return x % (epsilon * epsilon);
     }
 
-    inline static bool is_id_page_bearer(u64 id){
+    inline static bool is_id_page_bearer(u64){
         // we store everything using their respective IDs. 
         return true; 
     }
 
-    inline bool try_insert_in_page(u64 x, u64 id){
+    inline bool try_insert_in_page(u64 x, u64){
         u64 x_id = get_id(x);       
         // 0: initialize with empty bitvector if the page does not exist
         auto result = table.get_or_insert(x_id, zero);
@@ -56,7 +58,6 @@ struct PBSEpsilon8 {
         u64 elements = result->value;
         u64 x_id = get_id(x);
         
-        //if (x == 55) std::cout << "elements: " << std::hex << elements << "\n";
         
         // mask out the elements that are not predecessors
         if (x_id == id){
@@ -69,16 +70,13 @@ struct PBSEpsilon8 {
             const u64 mask  = (lsh - 1) | lsh;  
             
             elements = elements & mask;
-            //if (x == 55) std::cout << "after mask: " << std::hex << elements << "\n";
         }
 
         // We might have masked out all the 1-bits in element
         if (elements == 0) return 0;
 
         const u64 base_element = recover_element(id);
-        //if (x == 55) std::cout << "base: " << std::hex << base_element << "\n";
         const u64 index_of_largest_element = bits_per_word - 1 - std::__countl_zero(elements);
-        //if (x == 55) std::cout << "index_of_largest: " << std::dec << index_of_largest_element << "\n";
 
         auto ret =  base_element + index_of_largest_element;
         return ret;

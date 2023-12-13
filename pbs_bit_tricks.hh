@@ -7,6 +7,13 @@
 
 
 // Stores a bitvector consisting of  CEIL(epsilon^2/64) words for each page.
+// Stores epsilon^2-bit bitvector for each ID, where id of x is x/epsilon^2.
+// Will be slow and waste space for large epsilons, because it uses epilon^2/64 words 
+// per element IN THE WORST CASE. For very dense sets, it might still be good. 
+// If data happens to be dense, insertions are fast, but predecessor is slow.
+// However, you can make predecessor fast by adding one more level
+
+
 template <u64 epsilon>
 struct PBSBitTricks {
 
@@ -39,7 +46,7 @@ struct PBSBitTricks {
             words[word_i] &= mask;
 
             i64 best = -1;
-            for(int i = 0; i <= word_i; i++){
+            for(u64 i = 0; i <= word_i; i++){
                 best = words[i] ? i : best;        
             }
 
@@ -86,12 +93,12 @@ struct PBSBitTricks {
         return x % (epsilon * epsilon);
     }
 
-    inline static bool is_id_page_bearer(u64 id){
+    inline static bool is_id_page_bearer(u64){
         // we store everything using their respective IDs. 
         return true; 
     }
 
-    inline bool try_insert_in_page(u64 x, u64 id){
+    inline bool try_insert_in_page(u64 x, u64){
         u64 x_id = get_id(x);       
         // 0: initialize with empty bitvector if the page does not exist
         auto result = table.get_or_insert(x_id, empty_large_word);

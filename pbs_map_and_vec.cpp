@@ -6,6 +6,10 @@
 #include <algorithm>
 #include "util.h"
 
+
+// Page bearer structure using std::map and std::vec
+// determines if an element is a page bearer using a hash function
+
 template <uint64_t epsilon>
 struct MapAndVecPBS {
 
@@ -61,7 +65,7 @@ struct MapAndVecPBS {
             auto xpt = map.find(xid);
 
             xpt->second.push_back(x);
-            i32 i = 0; 
+            u64 i = 0; 
             while (i < pt->second.size()){
                 if (pt->second[i] >= x) {
                     xpt->second.push_back(pt->second[i]);
@@ -87,9 +91,8 @@ struct MapAndVecPBS {
         // elements is never empty
         auto elements = pt->second;
         u64 best = 0;
-        bool found = false;
         for (auto e : elements){
-            if (e >= best && e <= x) found = true, best = e;
+            if (e >= best && e <= x) best = e;
         }
         return best;
     }
